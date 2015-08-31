@@ -1,0 +1,8 @@
+[package]
+name = "irc"
+version = "0.1.0"
+authors = ["Y. T. Chung <zonyitoo@gmail.com>"]
+
+[dependencies]
+regex = "^0.1.41"
+lazy_static = "^0.1.14"
