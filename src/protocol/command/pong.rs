@@ -1,7 +1,7 @@
 use std::fmt;
 
 use protocol::command::*;
-use protocol::message::{IrcMessage, RawMessage, ParseMessageError};
+use protocol::message::{IrcMessage, MessageParamIter, RawMessage, ParseMessageError};
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct PongCommand<'a> {
@@ -15,8 +15,8 @@ impl<'a> PongCommand<'a> {
         }
     }
 
-    pub fn servers(&self) -> &'a str {
-        self.servers
+    pub fn servers(&self) -> MessageParamIter<'a> {
+        MessageParamIter::wrap(self.servers)
     }
 }
 

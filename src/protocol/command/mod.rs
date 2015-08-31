@@ -1,4 +1,5 @@
 use std::fmt;
+use std::convert::From;
 
 use protocol::message::{IrcMessage, RawMessage, ParseMessageError, ParseMessageErrorKind};
 
@@ -83,50 +84,72 @@ pub const CMD_WALLOPS: &'static str = "WALLOPS";
 pub const CMD_USERHOST: &'static str = "USERHOST";
 pub const CMD_ISON: &'static str = "ISON";
 
-#[derive(Debug, Clone, Eq, PartialEq)]
-pub enum Command<'a> {
-    Pass(PassCommand<'a>),
-    Nick(NickCommand<'a>),
-    User(UserCommand<'a>),
-    Join(JoinCommand<'a>),
-    Privmsg(PrivmsgCommand<'a>),
-    Notice(NoticeCommand<'a>),
-    Quit(QuitCommand<'a>),
-    Ping(PingCommand<'a>),
-    Pong(PongCommand<'a>),
+
+impl<'a> Command<'a> {
+    pub fn new<C>(c: C) -> Command<'a>
+        where Command<'a>: From<C>
+    {
+        From::from(c)
+    }
 }
 
-impl<'a> IrcMessage<'a> for Command<'a> {
-    fn from_raw(raw: &RawMessage<'a>) -> Result<Command<'a>, ParseMessageError> {
-        match raw.command() {
-            CMD_PASS    => Ok(Command::Pass(try!(IrcMessage::from_raw(raw)))),
-            CMD_NICK    => Ok(Command::Nick(try!(IrcMessage::from_raw(raw)))),
-            CMD_USER    => Ok(Command::User(try!(IrcMessage::from_raw(raw)))),
-            CMD_JOIN    => Ok(Command::Join(try!(IrcMessage::from_raw(raw)))),
-            CMD_PRIVMSG => Ok(Command::Privmsg(try!(IrcMessage::from_raw(raw)))),
-            CMD_NOTICE  => Ok(Command::Notice(try!(IrcMessage::from_raw(raw)))),
-            CMD_QUIT    => Ok(Command::Quit(try!(IrcMessage::from_raw(raw)))),
-            CMD_PING    => Ok(Command::Ping(try!(IrcMessage::from_raw(raw)))),
-            CMD_PONG    => Ok(Command::Pong(try!(IrcMessage::from_raw(raw)))),
-
-            _ => Err(ParseMessageError::new(ParseMessageErrorKind::UnrecognizedCommand,
-                                            "Unrecognized command")),
+macro_rules! impl_cmd_from {
+    ($name:ident, $structname:ty) => {
+        impl<'a> From<$structname> for Command<'a> {
+            fn from(n: $structname) -> Command<'a> {
+                Command::$name(n)
+            }
         }
     }
 }
 
-impl<'a> fmt::Display for Command<'a> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            &Command::Pass(ref c)       => c.fmt(f),
-            &Command::Nick(ref c)       => c.fmt(f),
-            &Command::User(ref c)       => c.fmt(f),
-            &Command::Join(ref c)       => c.fmt(f),
-            &Command::Privmsg(ref c)    => c.fmt(f),
-            &Command::Notice(ref c)     => c.fmt(f),
-            &Command::Quit(ref c)       => c.fmt(f),
-            &Command::Ping(ref c)       => c.fmt(f),
-            &Command::Pong(ref c)       => c.fmt(f),
+macro_rules! impl_cmd {
+    ($($cmd:ident # $name:ident => $sname:ty,)+) => {
+        #[derive(Debug, Clone, Eq, PartialEq)]
+        pub enum Command<'a> {
+            $(
+                $name($sname),
+            )+
         }
+
+        impl<'a> IrcMessage<'a> for Command<'a> {
+            fn from_raw(raw: &RawMessage<'a>) -> Result<Command<'a>, ParseMessageError> {
+                match raw.command() {
+                    $(
+                        $cmd => Ok(Command::$name(try!(IrcMessage::from_raw(raw)))),
+                    )+
+
+                    _ => Err(ParseMessageError::new(ParseMessageErrorKind::UnrecognizedCommand,
+                                                    "Unrecognized command")),
+                }
+            }
+        }
+
+        impl<'a> fmt::Display for Command<'a> {
+            fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                match self {
+                    $(
+                        &Command::$name(ref c) => c.fmt(f),
+                    )+
+                }
+            }
+        }
+
+        $(
+            impl_cmd_from!($name, $sname);
+        )+
     }
+}
+
+
+impl_cmd! {
+    CMD_PASS    # Pass      => PassCommand<'a>,
+    CMD_NICK    # Nick      => NickCommand<'a>,
+    CMD_USER    # User      => UserCommand<'a>,
+    CMD_JOIN    # Join      => JoinCommand<'a>,
+    CMD_PRIVMSG # Privmsg   => PrivmsgCommand<'a>,
+    CMD_NOTICE  # Notice    => NoticeCommand<'a>,
+    CMD_QUIT    # Quit      => QuitCommand<'a>,
+    CMD_PING    # Ping      => PingCommand<'a>,
+    CMD_PONG    # Pong      => PongCommand<'a>,
 }

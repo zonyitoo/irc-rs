@@ -2,6 +2,7 @@
 use std::fmt;
 use std::iter::Iterator;
 use std::str::FromStr;
+use std::convert::From;
 
 use protocol::command::Command;
 use protocol::reply::Reply;
@@ -219,33 +220,75 @@ impl<'a> fmt::Display for RawMessage<'a> {
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
-pub enum MessageCommand<'a> {
+pub enum Body<'a> {
     Command(Command<'a>),
     Reply(Reply<'a>),
     Unrecognized(RawMessage<'a>),
 }
 
-impl<'a> fmt::Display for MessageCommand<'a> {
+impl<'a> Body<'a> {
+    pub fn new<C>(c: C) -> Body<'a>
+        where Body<'a>: From<C>
+    {
+        From::from(c)
+    }
+
+    pub fn command<C>(c: C) -> Body<'a>
+        where Command<'a>: From<C>
+    {
+        Body::Command(From::from(c))
+    }
+
+    pub fn reply<R>(r: R) -> Body<'a>
+        where Reply<'a>: From<R>
+    {
+        Body::Reply(From::from(r))
+    }
+
+    pub fn unrecognized(raw: RawMessage<'a>) -> Body<'a> {
+        Body::Unrecognized(raw)
+    }
+}
+
+impl<'a> fmt::Display for Body<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            &MessageCommand::Command(ref c) => c.fmt(f),
-            &MessageCommand::Reply(ref c) => c.fmt(f),
-            &MessageCommand::Unrecognized(ref c) => c.fmt(f),
+            &Body::Command(ref c) => c.fmt(f),
+            &Body::Reply(ref c) => c.fmt(f),
+            &Body::Unrecognized(ref c) => c.fmt(f),
         }
+    }
+}
+
+impl<'a> From<Command<'a>> for Body<'a> {
+    fn from(c: Command<'a>) -> Body<'a> {
+        Body::Command(c)
+    }
+}
+
+impl<'a> From<Reply<'a>> for Body<'a> {
+    fn from(c: Reply<'a>) -> Body<'a> {
+        Body::Reply(c)
+    }
+}
+
+impl<'a> From<RawMessage<'a>> for Body<'a> {
+    fn from(c: RawMessage<'a>) -> Body<'a> {
+        Body::Unrecognized(c)
     }
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Message<'a> {
     prefix: Option<&'a str>,
-    command: MessageCommand<'a>,
+    body: Body<'a>,
 }
 
 impl<'a> Message<'a> {
-    pub fn new(prefix: Option<&'a str>, command: MessageCommand<'a>) -> Message<'a> {
+    pub fn new(prefix: Option<&'a str>, body: Body<'a>) -> Message<'a> {
         Message {
             prefix: prefix,
-            command: command,
+            body: body,
         }
     }
 
@@ -253,8 +296,8 @@ impl<'a> Message<'a> {
         self.prefix
     }
 
-    pub fn command<'s>(&'s self) -> &'s MessageCommand<'a> {
-        &self.command
+    pub fn body<'s>(&'s self) -> &'s Body<'a> {
+        &self.body
     }
 }
 
@@ -264,7 +307,7 @@ impl<'a> fmt::Display for Message<'a> {
             try!(write!(f, "{} ", prefix));
         }
 
-        write!(f, "{}", self.command)
+        write!(f, "{}", self.body)
     }
 }
 
@@ -272,7 +315,7 @@ impl<'a> IrcMessage<'a> for Message<'a> {
     fn from_raw(raw: &RawMessage<'a>) -> Result<Message<'a>, ParseMessageError> {
         let prefix = raw.prefix();
 
-        let command = {
+        let body = {
             match Reply::from_raw(raw) {
                 Ok(cmd) => {
                     if prefix.is_none() {
@@ -280,16 +323,16 @@ impl<'a> IrcMessage<'a> for Message<'a> {
                                                           "Prefix is required in reply"));
                     }
 
-                    MessageCommand::Reply(cmd)
+                    Body::Reply(cmd)
                 },
                 Err(err) => match err.kind() {
                     ParseMessageErrorKind::InvalidReplyCode => {
                         // Try to parse Command
                         match Command::from_raw(raw) {
-                            Ok(cmd) => MessageCommand::Command(cmd),
+                            Ok(cmd) => Body::Command(cmd),
                             Err(err) => match err.kind() {
                                 ParseMessageErrorKind::UnrecognizedCommand => {
-                                    MessageCommand::Unrecognized(*raw)
+                                    Body::Unrecognized(*raw)
                                 },
                                 _ => {
                                     return Err(err);
@@ -298,7 +341,7 @@ impl<'a> IrcMessage<'a> for Message<'a> {
                         }
                     },
                     ParseMessageErrorKind::UnrecognizedReply => {
-                        MessageCommand::Unrecognized(*raw)
+                        Body::Unrecognized(*raw)
                     },
                     _ => {
                         return Err(err);
@@ -307,7 +350,7 @@ impl<'a> IrcMessage<'a> for Message<'a> {
             }
         };
 
-        Ok(Message::new(prefix, command))
+        Ok(Message::new(prefix, body))
     }
 }
 
@@ -373,7 +416,7 @@ mod test {
         let data = "USER guest 0 * :Ronnie Reagan";
         let msg = Message::from_str(data).unwrap();
 
-        let expected = Message::new(None, MessageCommand::Command(Command::User(UserCommand::new("guest", 0,
+        let expected = Message::new(None, Body::Command(Command::User(UserCommand::new("guest", 0,
                                                                                                  "Ronnie Reagan"))));
         assert_eq!(expected, msg);
     }
@@ -386,7 +429,7 @@ mod test {
         let msg = Message::from_str(data).unwrap();
 
         let expected = Message::new(Some("fripp.mozilla.org"),
-                                    MessageCommand::Reply(Reply::new(ReplyCode::RPL_WELCOME,
+                                    Body::Reply(Reply::new(ReplyCode::RPL_WELCOME,
                                                                      "zonyitoo",
                                                                      ":Welcome to the Mozilla IRC Network zonyitoo!zonyitoo@113.93.181.139")));
         assert_eq!(expected, msg);

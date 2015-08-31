@@ -5,7 +5,7 @@ use std::net::TcpStream;
 use std::thread;
 use std::io::{Write, BufRead, BufReader};
 
-use irc::protocol::message::{RawMessage, IrcMessage, Message, MessageCommand};
+use irc::protocol::message::{RawMessage, IrcMessage, Message, Body};
 use irc::protocol::command::{Command, UserCommand, NickCommand, JoinCommand, PongCommand};
 
 fn main() {
@@ -15,8 +15,8 @@ fn main() {
     let usercmd = UserCommand::new("rust_irc_test", 0, "rust_irc_test");
     let nickcmd = NickCommand::new("rust_irc_test");
 
-    let usermsg = Message::new(None, MessageCommand::Command(Command::User(usercmd)));
-    let nickmsg = Message::new(None, MessageCommand::Command(Command::Nick(nickcmd)));
+    let usermsg = Message::new(None, Body::command(usercmd));
+    let nickmsg = Message::new(None, Body::command(nickcmd));
 
     println!("Sending {:?}", usermsg);
     write!(stream, "{}\r\n", usermsg).unwrap();
@@ -29,7 +29,7 @@ fn main() {
         thread::sleep_ms(2000);
 
         let joincmd = JoinCommand::new("#rust", None);
-        let joinmsg = Message::new(None, MessageCommand::Command(Command::Join(joincmd)));
+        let joinmsg = Message::new(None, Body::command(joincmd));
 
         println!("Sending {:?}", joinmsg);
         write!(cloned_stream, "{}\r\n", joinmsg).unwrap();
@@ -47,12 +47,12 @@ fn main() {
         println!("parsed: {:?}\n", parsed);
 
         if let Ok(msg) = parsed {
-            if let &MessageCommand::Command(ref cmd) = msg.command() {
+            if let &Body::Command(ref cmd) = msg.body() {
                 if let &Command::Ping(ref msg) = cmd {
-                    let pongcmd = PongCommand::new(msg.servers());
-                    let pongmsg = Message::new(None, MessageCommand::Command(Command::Pong(pongcmd)));
+                    let pongcmd = PongCommand::new(msg.servers().get());
+                    let pongmsg = Message::new(None, Body::command(pongcmd));
 
-                    println!("Sending {:?}", pongmsg);
+                    println!("Sending {:?}\n", pongmsg);
                     write!(stream, "{}\r\n", pongmsg).unwrap();
                 }
             }
