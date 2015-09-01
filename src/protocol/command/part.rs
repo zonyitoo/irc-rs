@@ -17,8 +17,8 @@ impl<'a> PartCommand<'a> {
         }
     }
 
-    pub fn channels(&self) -> ChannelIter<'a> {
-        ChannelIter::wrap(self.channels)
+    pub fn channels(&self) -> MultipleFieldIter<'a> {
+        MultipleFieldIter::wrap(self.channels)
     }
 
     pub fn message(&self) -> Option<&'a str> {

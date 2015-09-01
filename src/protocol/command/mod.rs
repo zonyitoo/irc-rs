@@ -17,6 +17,36 @@ pub use self::mode::ModeCommand;
 pub use self::service::ServiceCommand;
 pub use self::squit::SQuitCommand;
 pub use self::part::PartCommand;
+pub use self::topic::TopicCommand;
+pub use self::names::NamesCommand;
+pub use self::list::ListCommand;
+pub use self::invite::InviteCommand;
+pub use self::kick::KickCommand;
+pub use self::motd::MotdCommand;
+pub use self::version::VersionCommand;
+pub use self::lusers::LusersCommand;
+pub use self::stats::StatsCommand;
+pub use self::links::LinksCommand;
+pub use self::time::TimeCommand;
+pub use self::connect::ConnectCommand;
+pub use self::trace::TraceCommand;
+pub use self::admin::AdminCommand;
+pub use self::info::InfoCommand;
+pub use self::servlist::ServlistCommand;
+pub use self::squery::SqueryCommand;
+pub use self::error::ErrorCommand;
+pub use self::who::WhoCommand;
+pub use self::whois::WhoisCommand;
+pub use self::away::AwayCommand;
+pub use self::rehash::RehashCommand;
+pub use self::die::DieCommand;
+pub use self::restart::RestartCommand;
+pub use self::whowas::WhowasCommand;
+pub use self::summon::SummonCommand;
+pub use self::users::UsersCommand;
+pub use self::wallops::WallopsCommand;
+pub use self::userhost::UserhostCommand;
+pub use self::ison::IsonCommand;
 
 pub mod pass;
 pub mod nick;
@@ -32,6 +62,36 @@ pub mod mode;
 pub mod service;
 pub mod squit;
 pub mod part;
+pub mod topic;
+pub mod names;
+pub mod list;
+pub mod invite;
+pub mod kick;
+pub mod motd;
+pub mod version;
+pub mod lusers;
+pub mod stats;
+pub mod links;
+pub mod time;
+pub mod connect;
+pub mod trace;
+pub mod admin;
+pub mod info;
+pub mod servlist;
+pub mod squery;
+pub mod error;
+pub mod who;
+pub mod whois;
+pub mod whowas;
+pub mod away;
+pub mod rehash;
+pub mod die;
+pub mod restart;
+pub mod summon;
+pub mod users;
+pub mod wallops;
+pub mod userhost;
+pub mod ison;
 
 // Connection Registration
 pub const CMD_PASS: &'static str = "PASS";
@@ -163,25 +223,49 @@ impl_cmd! {
     CMD_SQUIT   # SQuit     => SQuitCommand<'a>,
     CMD_JOIN    # Join      => JoinCommand<'a>,
     CMD_PART    # Part      => PartCommand<'a>,
+    CMD_TOPIC   # Topic     => TopicCommand<'a>,
+    CMD_NAMES   # Names     => NamesCommand<'a>,
+    CMD_LIST    # List      => ListCommand<'a>,
+    CMD_KICK    # Kick      => KickCommand<'a>,
     CMD_PRIVMSG # Privmsg   => PrivmsgCommand<'a>,
     CMD_NOTICE  # Notice    => NoticeCommand<'a>,
+    CMD_MOTD    # Motd      => MotdCommand<'a>,
+    CMD_LUSERS  # Lusers    => LusersCommand<'a>,
+    CMD_VERSION # Version   => VersionCommand<'a>,
+    CMD_STATS   # Stats     => StatsCommand<'a>,
+    CMD_LINKS   # Links     => LinksCommand<'a>,
+    CMD_CONNECT # Connect   => ConnectCommand<'a>,
+    CMD_TRACE   # Trace     => TraceCommand<'a>,
+    CMD_ADMIN   # Admin     => AdminCommand<'a>,
+    CMD_SQUERY  # Squery    => SqueryCommand<'a>,
     CMD_PING    # Ping      => PingCommand<'a>,
     CMD_PONG    # Pong      => PongCommand<'a>,
+    CMD_ERROR   # Error     => ErrorCommand<'a>,
+    CMD_WHO     # Who       => WhoCommand<'a>,
+    CMD_WHOIS   # Whois     => WhoisCommand<'a>,
+    CMD_AWAY    # Away      => AwayCommand<'a>,
+    CMD_REHASH  # Rehash    => RehashCommand,
+    CMD_DIE     # Die       => DieCommand,
+    CMD_RESTART # Restart   => RestartCommand,
+    CMD_SUMMON  # Summon    => SummonCommand<'a>,
+    CMD_WALLOPS # Wallops   => WallopsCommand<'a>,
+    CMD_USERHOST # UserHost => UserhostCommand<'a>,
+    CMD_ISON    # Ison      => IsonCommand<'a>,
 }
 
-pub struct ChannelIter<'a> {
+pub struct MultipleFieldIter<'a> {
     data: &'a str,
 }
 
-impl<'a> ChannelIter<'a> {
-    pub fn wrap(d: &'a str) -> ChannelIter<'a> {
-        ChannelIter {
+impl<'a> MultipleFieldIter<'a> {
+    pub fn wrap(d: &'a str) -> MultipleFieldIter<'a> {
+        MultipleFieldIter {
             data: d,
         }
     }
 }
 
-impl<'a> Iterator for ChannelIter<'a> {
+impl<'a> Iterator for MultipleFieldIter<'a> {
     type Item = &'a str;
 
     fn next(&mut self) -> Option<&'a str> {
