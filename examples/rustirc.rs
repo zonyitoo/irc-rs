@@ -98,7 +98,14 @@ fn main() {
         if let &Body::Command(ref cmd) = parsed.body() {
             match cmd {
                 &Command::Privmsg(ref privmsg) => {
-                    println!("-*- < {} > {}", privmsg.target(), privmsg.message());
+                    let prefix = parsed.prefix().unwrap();
+
+                    let name = match prefix.find('!') {
+                        None => prefix,
+                        Some(idx) => &prefix[..idx],
+                    };
+
+                    println!("-*- < {} > {}", name, privmsg.message());
                 },
                 &Command::Ping(ref ping) => {
                     debug!("Received ping {:?}", ping);

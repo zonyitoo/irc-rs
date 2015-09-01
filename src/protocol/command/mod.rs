@@ -175,7 +175,7 @@ macro_rules! impl_cmd_from {
 
 macro_rules! impl_cmd {
     ($($cmd:ident # $name:ident => $sname:ty,)+) => {
-        #[derive(Debug, Clone, Eq, PartialEq)]
+        #[derive(Clone, Eq, PartialEq)]
         pub enum Command<'a> {
             $(
                 $name($sname),
@@ -196,6 +196,16 @@ macro_rules! impl_cmd {
         }
 
         impl<'a> fmt::Display for Command<'a> {
+            fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                match self {
+                    $(
+                        &Command::$name(ref c) => c.fmt(f),
+                    )+
+                }
+            }
+        }
+        
+        impl<'a> fmt::Debug for Command<'a> {
             fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
                 match self {
                     $(
