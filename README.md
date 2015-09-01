@@ -1,5 +1,6 @@
 # IRC-rs
 
+[![Build Status](https://img.shields.io/travis/zonyitoo/irc-rs.svg)](https://travis-ci.org/zonyitoo/irc-rs)
 [![License](https://img.shields.io/github/license/zonyitoo/irc-rs.svg)](https://github.com/zonyitoo/irc-rs)
 
 IRC library for Rust
