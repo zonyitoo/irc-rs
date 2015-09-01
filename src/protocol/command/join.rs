@@ -17,8 +17,8 @@ impl<'a> JoinCommand<'a> {
         }
     }
 
-    pub fn channels(&self) -> &'a str {
-        self.channels
+    pub fn channels(&self) -> ChannelIter<'a> {
+        ChannelIter::wrap(self.channels)
     }
 
     pub fn keys(&self) -> Option<&'a str> {

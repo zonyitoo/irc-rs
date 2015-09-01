@@ -12,6 +12,11 @@ pub use self::join::JoinCommand;
 pub use self::quit::QuitCommand;
 pub use self::ping::PingCommand;
 pub use self::pong::PongCommand;
+pub use self::oper::OperCommand;
+pub use self::mode::ModeCommand;
+pub use self::service::ServiceCommand;
+pub use self::squit::SQuitCommand;
+pub use self::part::PartCommand;
 
 pub mod pass;
 pub mod nick;
@@ -22,6 +27,11 @@ pub mod join;
 pub mod quit;
 pub mod ping;
 pub mod pong;
+pub mod oper;
+pub mod mode;
+pub mod service;
+pub mod squit;
+pub mod part;
 
 // Connection Registration
 pub const CMD_PASS: &'static str = "PASS";
@@ -146,10 +156,50 @@ impl_cmd! {
     CMD_PASS    # Pass      => PassCommand<'a>,
     CMD_NICK    # Nick      => NickCommand<'a>,
     CMD_USER    # User      => UserCommand<'a>,
+    CMD_OPER    # Oper      => OperCommand<'a>,
+    CMD_MODE    # Mode      => ModeCommand<'a>,
+    CMD_SERVICE # Service   => ServiceCommand<'a>,
+    CMD_QUIT    # Quit      => QuitCommand<'a>,
+    CMD_SQUIT   # SQuit     => SQuitCommand<'a>,
     CMD_JOIN    # Join      => JoinCommand<'a>,
+    CMD_PART    # Part      => PartCommand<'a>,
     CMD_PRIVMSG # Privmsg   => PrivmsgCommand<'a>,
     CMD_NOTICE  # Notice    => NoticeCommand<'a>,
-    CMD_QUIT    # Quit      => QuitCommand<'a>,
     CMD_PING    # Ping      => PingCommand<'a>,
     CMD_PONG    # Pong      => PongCommand<'a>,
+}
+
+pub struct ChannelIter<'a> {
+    data: &'a str,
+}
+
+impl<'a> ChannelIter<'a> {
+    pub fn wrap(d: &'a str) -> ChannelIter<'a> {
+        ChannelIter {
+            data: d,
+        }
+    }
+}
+
+impl<'a> Iterator for ChannelIter<'a> {
+    type Item = &'a str;
+
+    fn next(&mut self) -> Option<&'a str> {
+        if self.data.is_empty() {
+            None
+        } else {
+            match self.data.find(',') {
+                None => {
+                    let cur = self.data;
+                    self.data = &self.data[self.data.len()..];
+                    Some(cur)
+                },
+                Some(idx) => {
+                    let cur = &self.data[..idx];
+                    self.data = &self.data[idx+1..];
+                    Some(cur)
+                }
+            }
+        }
+    }
 }
