@@ -1,6 +1,6 @@
 use std::fmt;
 
-use protocol::command::*;
+use protocol::command::CMD_PASS;
 use protocol::message::{IrcMessage, RawMessage, ParseMessageError, ParseMessageErrorKind};
 
 /// The `PASS` command is used to set a 'connection password'.  The

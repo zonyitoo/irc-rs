@@ -1,6 +1,6 @@
 use std::fmt;
 
-use protocol::command::*;
+use protocol::command::CMD_LIST;
 use protocol::message::{IrcMessage, RawMessage, ParseMessageError};
 
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -34,7 +34,7 @@ impl<'a> ListCommand<'a> {
 
 impl<'a> fmt::Display for ListCommand<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        try!(write!(f, "{}", CMD_NAMES));
+        try!(write!(f, "{}", CMD_LIST));
         match self.channels {
             None => Ok(()),
             Some(chan) => {

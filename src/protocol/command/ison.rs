@@ -1,6 +1,6 @@
 use std::fmt;
 
-use protocol::command::*;
+use protocol::command::CMD_ISON;
 use protocol::message::{IrcMessage, MessageParamIter, RawMessage, ParseMessageError, ParseMessageErrorKind};
 
 #[derive(Debug, Clone, Eq, PartialEq)]

@@ -1,6 +1,6 @@
 use std::fmt;
 
-use protocol::command::*;
+use protocol::command::CMD_SQUIT;
 use protocol::message::{IrcMessage, RawMessage, ParseMessageError, ParseMessageErrorKind};
 
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -28,7 +28,7 @@ impl<'a> SQuitCommand<'a> {
 
 impl<'a> fmt::Display for SQuitCommand<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        try!(write!(f, "{} {}", CMD_QUIT, self.server));
+        try!(write!(f, "{} {}", CMD_SQUIT, self.server));
 
         match self.msg {
             Some(m) => write!(f, " :{}", m),

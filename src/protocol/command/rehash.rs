@@ -1,6 +1,6 @@
 use std::fmt;
 
-use protocol::command::*;
+use protocol::command::CMD_REHASH;
 use protocol::message::{IrcMessage, RawMessage, ParseMessageError};
 
 #[derive(Debug, Clone, Eq, PartialEq)]

@@ -49,7 +49,7 @@ fn main() {
             if let &Body::Reply(ref rpl) = parsed.body() {
                 if let ReplyCode::RPL_MOTDSTART = rpl.code() {
                     let params = rpl.parameters().collect::<Vec<&str>>();
-                    println!("-*- {}", params.join(" "));
+                    println!("-*- {}", params.connect(" "));
                     break;
                 }
             }
@@ -66,11 +66,11 @@ fn main() {
                 match rpl.code() {
                     ReplyCode::RPL_MOTD => {
                         let params = rpl.parameters().collect::<Vec<&str>>();
-                        println!("-*- {}", params.join(" "));
+                        println!("-*- {}", params.connect(" "));
                     },
                     ReplyCode::RPL_ENDOFMOTD => {
                         let params = rpl.parameters().collect::<Vec<&str>>();
-                        println!("-*- {}", params.join(" "));
+                        println!("-*- {}", params.connect(" "));
                         break;
                     },
                     _ => {}
