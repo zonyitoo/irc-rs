@@ -119,7 +119,11 @@ fn main() {
                             write!(writeable_stream, "{}\r\n", msg).unwrap();
                         },
                         _ => {
-                            error!("Unknown command {}", cmd);
+                            let privmsg = PrivmsgCommand::new("#rust", msg);
+                            println!("-*- < {} > {}", cloned_username, msg);
+                            let msg = Message::new(None, Body::command(privmsg));
+                            trace!("Privmsg: Sending {:?}", msg);
+                            write!(writeable_stream, "{}\r\n", msg).unwrap();
                         }
                     }
                 } else {
